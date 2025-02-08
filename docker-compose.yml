@@ -2,14 +2,28 @@
 version: '3.8'
 
 services:
+  nginx:
+    image: nginx
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app_network
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro  # 掛載 Nginx 設定檔
+
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "8000:8000" 
     depends_on:
       - mongodb
     environment:
       - MONGO_URI=mongodb://mongodb:27017/images_db
+      - ALLOWED_ORIGINS=http://10.211.55.1
     networks:
       - app_network
     volumes:
@@ -22,11 +36,16 @@ services:
       - "8501:8501"
     depends_on:
       - backend
+    environment:
+      - STREAMLIT_SERVER_ENABLE_WEBSOCKET_COMPRESSION=false
+      - STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=false
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_RUN_ON_SAVE=true
     networks:
       - app_network
     volumes:
       - ./frontend:/app
-    command: streamlit run app.py --server.address=0.0.0.0 --server.port=8501 --browser.serverAddress=0.0.0.0 --browser.serverPort=8501
+    command: streamlit run app.py --server.address=0.0.0.0 --server.port=8501
 
   mongodb:
     image: mongo
