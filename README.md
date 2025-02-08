@@ -1,9 +1,9 @@
 ### How to use
 
 change the 
-'''
+```
 ALLOWED_ORIGINS env to your local ip
-'''
+```
 docker compose up
 
 Note:
