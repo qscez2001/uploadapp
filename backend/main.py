@@ -1,5 +1,6 @@
 import io
 import os
+from PIL import Image
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +13,9 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=[
+        "http://10.5.0.2:8501",  # Streamlit 的 IP 和端口
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -41,6 +44,19 @@ async def upload_images(files: list[UploadFile] = File(...)):
 
     uploaded_ids = []
     for file in files:
+        
+        # Verify image resolution
+        image = Image.open(file.file)
+        width, height = image.size
+        if width != 2048 or height != 2048:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"影像必須為 2048x2048 像素。目前大小: {width}x{height}"
+            )
+        
+        # Reset file pointer after reading
+        file.file.seek(0)
+        
         file_id = fs.put(file.file, filename=file.filename, content_type=file.content_type)
         uploaded_ids.append(str(file_id))
 

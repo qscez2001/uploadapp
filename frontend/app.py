@@ -1,10 +1,14 @@
+import os
+import io
+import logging
 import streamlit as st
 import requests
-import io
 from PIL import Image
 
-BACKEND_URL = "http://backend:8000"
-requests.packages.urllib3.disable_warnings()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+BACKEND_URL = os.getenv("BACKEND_URL", "http://10.211.55.1:8000")
 
 st.title("影像上傳與存儲系統")
 
@@ -65,3 +69,6 @@ with st.spinner('載入圖片列表...'):
                     except Exception as e:
                         logger.error(f"Error processing image {image['id']}: {str(e)}")
                         st.error(f"無法載入圖片: {image['filename']}")
+                        
+st.sidebar.markdown("---")
+st.sidebar.info(f"後端連接: {BACKEND_URL}")
